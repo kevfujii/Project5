@@ -38,3 +38,10 @@ findEmailStart = function(txt){ # all e-mails seem to start with the same two li
 	c = sapply(a, function(x) any(b == x + 1)) # finds all lines beginning with "From" followed immediately by a line starting with "From:"
 	a[c]
 }
+
+
+splitEmails = function(txt){ # splits an e-mail text file into individual e-mails
+	emailStart = findEmailStart(txt)
+	groups = rep(seq_along(emailStart), times=diff(c(emailStart, length(txt) + 1)))
+	split(txt, groups)
+}
