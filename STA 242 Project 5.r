@@ -46,11 +46,19 @@ splitEmails = function(txt){ # splits an e-mail text file into individual e-mail
 	split(txt, groups)
 }
 
+rhTest = splitEmails(rhelp)[1]
 
-findSender = function(message){ # extracts the sender's name from an e-mail
-	fromLine = message[2]
-	gsub(".*\\((.*)\\).*", "\\1", fromLine)
+findSender = function(message){ # extracts the sender's e-mail address and name from an e-mail
+	fromLine = message[2] # the 2 might need to be changed for the other data set.
+	person = gsub("^From: (.*) at (.*) \\((.*)\\).*", "\\1;\\2;\\3", fromLine)
+	personSplit = strsplit(person, ";")[[1]]
+	c(paste(personSplit[1], personSplit[2], sep = "@"), personSplit[3]) 
 }
 
+
+
 # the senders of the e-mails in the last month are:
-senders = as.vector(sapply(splitEmails(rhelp), function(x) findSender(x)))
+senders = sapply(splitEmails(rhelp), function(x) findSender(x))
+
+# Still need to extract time and date, subject, reply (or not), Message-ID of previous mail (if it's a reply), body of message
+
