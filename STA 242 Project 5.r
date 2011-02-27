@@ -1,3 +1,5 @@
+#Reads in the email and creates a list of lists, the first holds the persons
+  #name and the second holds all the emails they sent.
 PeopleNames =list.files("enron/maildir/",full.names=TRUE)
 Email= lapply(1:length(PeopleNames), function(i){
   ByPerson =list.files(PeopleNames[i],full.names = TRUE,recursive = TRUE)
@@ -5,7 +7,10 @@ Email= lapply(1:length(PeopleNames), function(i){
       readLines(ByPerson[j])
     })
   })
-   
+
+#A small test email, from the first person on the list, and the second email 
+  #listed.
+LittleEmail = Email[[1]][[2]]  
 #Looks for the first email after the From: and finds the line, then replaces it
 #With blank text all around it.
 grep("^From:[[:space:]]*[[:alpha:]\\.]+@[[:alpha:]\\.]+",LittleEmail[[1]][[2]])
