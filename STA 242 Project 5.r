@@ -22,3 +22,19 @@ ToHeader = gsub("(?s).*?To:(.*?)\\n[[:alpha:]-]+:.*", "\\1", TestEmail, perl=TRU
 gsub("[[:space:]]", "", ToHeader, perl=T)
 #Split by commas, and we have all the recipient emails.
 strsplit( gsub("[[:space:]]", "", ToHeader, perl=T), ",")
+
+
+
+################ R Help #######################
+
+setwd("~/RHelp/")
+#rhelp = lapply(list.files(), function(x) readLines(gzfile(x)))
+rhelp1 = readLines(gzfile(list.files()[1])) # first month of RHelp e-mails
+rhelp = readLines(gzfile(list.files()[length(list.files())])) # last month of RHelp e-mails
+
+findEmailStart = function(txt){ # all e-mails seem to start with the same two lines
+	a = grep("^From .* at ", txt)  # 1st line starts with "From"
+	b = grep("^From: .* at ", txt) # 2nd line starts with "From:"
+	c = sapply(a, function(x) any(b == x + 1)) # finds all lines beginning with "From" followed immediately by a line starting with "From:"
+	a[c]
+}
