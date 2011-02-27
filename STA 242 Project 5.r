@@ -45,3 +45,12 @@ splitEmails = function(txt){ # splits an e-mail text file into individual e-mail
 	groups = rep(seq_along(emailStart), times=diff(c(emailStart, length(txt) + 1)))
 	split(txt, groups)
 }
+
+
+findSender = function(message){ # extracts the sender's name from an e-mail
+	fromLine = message[2]
+	gsub(".*\\((.*)\\).*", "\\1", fromLine)
+}
+
+# the senders of the e-mails in the last month are:
+senders = as.vector(sapply(splitEmails(rhelp), function(x) findSender(x)))
