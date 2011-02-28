@@ -1,3 +1,6 @@
+#########################Enron##################################################
+#Reads in the email and creates a list of lists, the first holds the persons
+  #name and the second holds all the emails they sent.
 PeopleNames =list.files("enron/maildir/",full.names=TRUE)
 Email= lapply(1:length(PeopleNames), function(i){
   ByPerson =list.files(PeopleNames[i],full.names = TRUE,recursive = TRUE)
@@ -5,7 +8,10 @@ Email= lapply(1:length(PeopleNames), function(i){
       readLines(ByPerson[j])
     })
   })
-   
+
+#A small test email, from the first person on the list, and the second email 
+  #listed.
+LittleEmail = Email[[1]][[2]]  
 #Looks for the first email after the From: and finds the line, then replaces it
 #With blank text all around it.
 grep("^From:[[:space:]]*[[:alpha:]\\.]+@[[:alpha:]\\.]+",LittleEmail[[1]][[2]])
@@ -23,7 +29,25 @@ gsub("[[:space:]]", "", ToHeader, perl=T)
 #Split by commas, and we have all the recipient emails.
 strsplit( gsub("[[:space:]]", "", ToHeader, perl=T), ",")
 
+#A function to sort through all emails, make them into strings with paste, and
+#extract all the regular expressions.
+#Note, this will require cleaning after running this function.
+#Note, you must give it the "replacement" argument.
+GetRegExp = function(File,RegExp, ...){
+  File = paste(File,collapse = "\n")
+  WhatWeWant = gsub(RegExp, x = File, ...)
+  return(WhatWeWant)
+  }
 
+
+#Showing how the above function works.  Now we are getting all of the things in 
+  #between " "
+TestEmail =readLines("Enron/maildir/lay-k/family/6")   
+TestRegExp = "(?s)[^\"]*(?:(\".*?\")[^\"]*)"
+GetRegExp(TestEmail,TestRegExp,perl = TRUE,replacement = "\\1")
+
+#An example for removing all the recipiant emails
+GetRegExp(TestEmail,"(?s).*?To:(.*?)\\n[[:alpha:]-]+:.*",perl = TRUE,replacement = "\\1")
 
 ################ R Help #######################
 #setwd("~/enron/maildir/")
