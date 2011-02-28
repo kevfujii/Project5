@@ -26,7 +26,7 @@ strsplit( gsub("[[:space:]]", "", ToHeader, perl=T), ",")
 
 
 ################ R Help #######################
-
+#setwd("~/enron/maildir/")
 setwd("~/RHelp/")
 #rhelp = lapply(list.files(), function(x) readLines(gzfile(x)))
 rhelp1 = readLines(gzfile(list.files()[1])) # first month of RHelp e-mails
@@ -38,6 +38,9 @@ findEmailStart = function(txt){ # all e-mails seem to start with the same two li
 	c = sapply(a, function(x) any(b == x + 1)) # finds all lines beginning with "From" followed immediately by a line starting with "From:"
 	a[c]
 }
+# Can we incorporate a way to identify the "Date:" line in the above function?
+# Dates for both data sets look like: "Date: Sun, 2 Jan 2011 01:09:00 -0800 (PST)"
+# The time zone in parentheses is not always present.
 
 
 splitEmails = function(txt){ # splits an e-mail text file into individual e-mails
@@ -48,12 +51,20 @@ splitEmails = function(txt){ # splits an e-mail text file into individual e-mail
 
 rhTest = splitEmails(rhelp)[1]
 
-findSender = function(message){ # extracts the sender's e-mail address and name from an e-mail
+# extracts the sender's e-mail address and name from an e-mail
+findSender = function(message){ # maybe this can take in a row number as input (corresponding to the From: row)
 	fromLine = message[2] # the 2 might need to be changed for the other data set.
 	person = gsub("^From: (.*) at (.*) \\((.*)\\).*", "\\1;\\2;\\3", fromLine)
 	personSplit = strsplit(person, ";")[[1]]
-	c(paste(personSplit[1], personSplit[2], sep = "@"), personSplit[3]) 
+	dateLine = message[3] # suppose for now that date is always 3rd.
+	date = strptime(dateLine, "Date: %a, %d %b %Y %T") # include %z at end for time zone
+	subjectLine = message[4]
+	subject = gsub("^Subject: (.*)", "\\1", subjectLine)
+	c(paste(personSplit[1], personSplit[2], sep = "@"), personSplit[3], subject, date) 
+
 }
+
+
 
 
 
