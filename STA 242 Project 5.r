@@ -1,3 +1,35 @@
+### General functions ###
+
+# This function, given an e-mail message, splits the message into two parts: the header and the body.
+headerBody = function(txt){
+	splitLine = min(which(txt == "")) # assumes that the header and body are split by the first blank line
+	list(header = txt[1:(splitLine-1)], body = txt[(splitLine+1):length(txt)])
+}
+
+# Returns the row indices containing relevant header information (in progress)
+headerLines = function(header){
+	from = grep("^From:", header)
+	date = grep("^Date:", header)
+	subject = grep("^Subject:", header)
+	messageID = grep("^Message-ID:", header)
+	inReplyTo = grep("^In-Reply-To:", header)
+	to = grep("^To:", header)
+	
+	lines = which(grepl("^[[:alpha:]|-]+:", header)) 
+	attrNames = gsub("^([[:alpha:]|-]+): .*", "\\1", header[lines])
+	extraToLines = integer(0)
+	if(any(attrNames == "To")){
+		if(lines[which(attrNames == "To")] != lines[which(attrNames == "To") + 1] - 1){
+			extraToLines = seq(lines[which(attrNames == "To")] + 1, lines[which(attrNames == "To") + 1] - 1, by = 1)
+		}
+	}
+	list(from = from, date = date, subject = subject, messageID = messageID, inReplyTo = inReplyTo, to = to, extraToLines = extraToLines)
+}
+	
+
+
+
+
 #########################Enron##################################################
 #Reads in the email and creates a list of lists, the first holds the persons
   #name and the second holds all the emails they sent.
@@ -77,12 +109,13 @@ rhTest = splitEmails(rhelp)[1]
 
 # extracts the sender's e-mail address and name from an e-mail
 findSender = function(message){ # maybe this can take in a row number as input (corresponding to the From: row)
-	fromLine = message[2] # the 2 might need to be changed for the other data set.
+	lineNumbers = headerLines(headerBody(message)$header)
+	fromLine = message[lineNumbers$from] # the 2 might need to be changed for the other data set.
 	person = gsub("^From: (.*) at (.*) \\((.*)\\).*", "\\1;\\2;\\3", fromLine)
 	personSplit = strsplit(person, ";")[[1]]
-	dateLine = message[3] # suppose for now that date is always 3rd.
+	dateLine = message[lineNumbers$date] # suppose for now that date is always 3rd.
 	date = strptime(dateLine, "Date: %a, %d %b %Y %T") # include %z at end for time zone
-	subjectLine = message[4]
+	subjectLine = message[lineNumbers$subject]
 	subject = gsub("^Subject: (.*)", "\\1", subjectLine)
 	c(paste(personSplit[1], personSplit[2], sep = "@"), personSplit[3], subject, date) 
 
