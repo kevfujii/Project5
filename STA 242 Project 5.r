@@ -48,9 +48,8 @@ parseHeader = function(header, rows = NULL){
 	data.frame(read.dcf("tempfile.txt", fields = rows), stringsAsFactors = FALSE)
 }
 
-
-
 TestEmail2 = readLines("enron/maildir/lay-k/family/1")
+   
 
 #########################Enron##################################################
 #Reads in the email and creates a list of lists, the first holds the persons
@@ -62,14 +61,6 @@ Email= lapply(1:length(PeopleNames), function(i){
       readLines(ByPerson[j])
     })
   })
-
-#A small test email, from the first person on the list, and the second email 
-  #listed.
-LittleEmail = Email[[1]][[2]]  
-#Looks for the first email after the From: and finds the line, then replaces it
-#With blank text all around it.
-grep("^From:[[:space:]]*[[:alpha:]\\.]+@[[:alpha:]\\.]+",LittleEmail[[1]][[2]])
-gsub("^From:[[:space:]]*([[:alpha:]\\.]+@[[:alpha:]\\.]+)", "\\1", LittleEmail[[1]][[2]],perl = TRUE)
 
 #A small test email which I know has multiple recipients on multiple lines. 
 #The collapse gives the new line charcter, and paste collapses the character
@@ -93,7 +84,6 @@ GetRegExp = function(File,RegExp, ...){
   return(WhatWeWant)
   }
 
-
 #Showing how the above function works.  Now we are getting all of the things in 
   #between " "
 TestEmail =readLines("Enron/maildir/lay-k/family/6")   
@@ -102,6 +92,37 @@ GetRegExp(TestEmail,TestRegExp,perl = TRUE,replacement = "\\1")
 
 #An example for removing all the recipiant emails
 GetRegExp(TestEmail,"(?s).*?To:(.*?)\\n[[:alpha:]-]+:.*",perl = TRUE,replacement = "\\1")
+
+#Takes a header and returns a two column matrix, the first column has the sender
+#email the second column the recipiant email.
+GetToFrom = function(header){
+  From = GetRegExp(header,"(?s).*?From: (.*?)\\n[[:alpha:]-]+:.*",replacement = "\\1",perl = T)
+  To = GetRegExp(header,"(?s).*?To: (.*?)\\n[[:alpha:]-]+:.*",replacement = "\\1",perl = T)
+  To = do.call(c,strsplit( gsub("[[:space:]]", "", To, perl=T), ","))
+  Emails = cbind(rep(From,length(To)),To)
+  colnames(Emails) = c("Sender","Recipiant")
+  return(Emails)
+  }
+#Creating my n by 2 matrix  
+Headers = lapply(1:length(Email),function(i){
+  lapply(1:length(Email[[i]]),function(j) {
+     headerBody(Email[[i]][[j]])$header
+     })
+  })
+  
+ToFromList = lapply(1:length(Headers),function(i){
+  lapply(1:length(Headers[[i]]),function(j) {
+     GetToFrom(Headers[[i]][[j]])
+     })
+  })
+  
+ToFromMat = lapply(1:length(ToFromList),function(i){
+  do.call(rbind,ToFromList[[i]])
+  })
+
+MajorToFromMat = do.call(rbind,ToFromMat)#a 3 million by 2 matrix.
+
+
 
 ################ R Help #######################
 #setwd("~/enron/maildir/")
