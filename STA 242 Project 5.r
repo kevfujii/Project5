@@ -8,7 +8,7 @@ headerBody = function(txt){
 	list(header = txt[1:(splitLine-1)], body = txt[(splitLine+1):length(txt)])
 }
 
-# Returns the row indices containing relevant header information (in progress)
+# Returns the row indices containing relevant header information (maybe unnecessary?)
 headerLines = function(header){
 	from = grep("^From:", header)
 	date = grep("^Date:", header)
@@ -34,6 +34,28 @@ headerLines = function(header){
 	list(from = from, date = date, subject = subject, messageID = messageID, inReplyTo = inReplyTo, to = to, extraToLines = extraToLines, extraReferenceLines = extraReferenceLines)
 }
 
+
+
+
+
+# formats the header so that the To:, cc:, References:, etc. are each on one line.
+formatHeader = function(header){
+	File = sapply(1:length(header), function(i){
+		ifelse(grepl("^[[:alpha:]|-]*:", header[i]), paste("CUT HERE", header[i]), header[i])
+		})
+	File = paste(File,collapse = " ")
+	File = gsub("\t", "", File)
+	# find locations of the tags
+	toReturn = strsplit(File, "CUT HERE ")[[1]]
+	toReturn[toReturn != ""]
+}
+	
+	
+			
+
+		
+	
+
 # Finds the date in a header
 getDate = function(header){
 	dateLine = headerLines(header)$date
@@ -58,19 +80,30 @@ formatDate = function(date){
 }
 	
 # Returns a one-observation data.frame of header attributes
+#parseHeader = function(header, rows = NULL){
+#	if(length(headerLines(header)$extraToLines) != 0){
+#		#header = headerBody(TestEmail2)$header
+#		to1 = GetRegExp(header,"(?s).*?To:(.*?)\\n[[:alpha:]-]+:.*",perl = TRUE,replacement = "\\1")
+#		to2 = strsplit( gsub("[[:space:]]", "", to1, perl=T), ",")[[1]]
+#		header[headerLines(header)$to] = paste("To: ", paste(to2, collapse = ", "), collapse = "")
+#		header = header[-headerLines(header)$extraToLines]
+#	}
+#	cat(header, file = "tempfile.txt", sep = "\n")
+#	data.frame(read.dcf("tempfile.txt", fields = rows), stringsAsFactors = FALSE)
+#}
+
+
 parseHeader = function(header, rows = NULL){
-	if(length(headerLines(header)$extraToLines) != 0){
-		#header = headerBody(TestEmail2)$header
-		to1 = GetRegExp(header,"(?s).*?To:(.*?)\\n[[:alpha:]-]+:.*",perl = TRUE,replacement = "\\1")
-		to2 = strsplit( gsub("[[:space:]]", "", to1, perl=T), ",")[[1]]
-		header[headerLines(header)$to] = paste("To: ", paste(to2, collapse = ", "), collapse = "")
-		header = header[-headerLines(header)$extraToLines]
-	}
-	cat(header, file = "tempfile.txt", sep = "\n")
-	data.frame(read.dcf("tempfile.txt", fields = rows), stringsAsFactors = FALSE)
+	formatted = formatHeader(header)
+	con = textConnection(formatted)
+	frame = data.frame(read.dcf(con, fields = rows), stringsAsFactors = FALSE)
+	close(con)
+	frame
 }
 
-TestEmail2 = readLines("enron/maildir/lay-k/family/1")
+OneNightStand = readLines("enron/maildir/williams-w3/bill/1")
+TestEmail2 = readLines("enron/maildir/lay-k/family/6")
+TestHeader = headerBody(TestEmail2)$header
    
 
 #########################Enron##################################################
@@ -196,10 +229,10 @@ headerFrame = do.call(rbind.fill, parsedHeaders)
 
 
 ############ Big data files #########
-RHelpHeaders = sapply(1:(length(RHelp)-1), function(y){
+RHelpHeaders = sapply(1:(length(RHelp)), function(y){
 	sapply(splitEmails(RHelp[[y]]), function(x) headerBody(x[-1])$header);
 })
-RHelpBodies = sapply(1:(length(RHelp)-1), function(y){
+RHelpBodies = sapply(1:(length(RHelp)), function(y){
 	sapply(splitEmails(RHelp[[y]]), function(x) headerBody(x)$body);
 })
 parsedRHelpHeaders = sapply(1:length(RHelpHeaders), function(y){
