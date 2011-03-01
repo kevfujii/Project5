@@ -40,6 +40,22 @@ getDate = function(header){
 	date = strptime(header[dateLine], "Date: %a, %d %b %Y %T")
 	date
 }
+
+# Attempts to format the date (since there are multiple possible formats)
+formatDate = function(date){
+	toReturn = strptime(date, "%a, %d %b %Y %T")
+	#if(toReturn$year %in% (c(97:99, 0:11) - 1900)){
+	#	toReturn$year = toReturn$year + 1900 
+	#}
+	toReturn[which(is.na(toReturn))] = strptime(date[which(is.na(toReturn))], "%d %b %Y %T")
+	toReturn[which(is.na(toReturn))] = strptime(date[which(is.na(toReturn))], "%a %b %d %T %Y")
+	toReturn[which(is.na(toReturn))] = strptime(date[which(is.na(toReturn))], "%a, %d %b %y %T")
+	toReturn[which(is.na(toReturn))] = strptime(date[which(is.na(toReturn))], "%d %b %y %T")
+	toReturn[which(is.na(toReturn))] = strptime(date[which(is.na(toReturn))], "%a, %d %b %y %R")
+	wrongYears = which(toReturn$year %in% (c(97:99, 0:11) - 1900))
+	toReturn$year[wrongYears] = toReturn$year[wrongYears] + 1900
+	toReturn
+}
 	
 # Returns a one-observation data.frame of header attributes
 parseHeader = function(header, rows = NULL){
@@ -195,6 +211,7 @@ headerList = lapply(1:length(parsedRHelpHeaders), function(y){
 })
 
 fullRHelp = do.call(rbind.fill, headerList)
+dates = formatDate(fullRHelp$Date)
 #####################################
 
 
