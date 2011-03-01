@@ -25,7 +25,13 @@ headerLines = function(header){
 			extraToLines = seq(lines[which(attrNames == "To")] + 1, lines[which(attrNames == "To") + 1] - 1, by = 1)
 		}
 	}
-	list(from = from, date = date, subject = subject, messageID = messageID, inReplyTo = inReplyTo, to = to, extraToLines = extraToLines)
+	extraReferenceLines = integer(0)
+	if(any(attrNames == "References")){
+		if(lines[which(attrNames == "References")] != lines[which(attrNames == "References") + 1] - 1){
+			extraReferenceLines = seq(lines[which(attrNames == "References")] + 1, lines[which(attrNames == "References") + 1] - 1, by = 1)
+		}
+	}
+	list(from = from, date = date, subject = subject, messageID = messageID, inReplyTo = inReplyTo, to = to, extraToLines = extraToLines, extraReferenceLines = extraReferenceLines)
 }
 
 # Finds the date in a header
@@ -130,6 +136,7 @@ setwd("~/RHelp/")
 #rhelp = lapply(list.files(), function(x) readLines(gzfile(x)))
 rhelp1 = readLines(gzfile(list.files()[1])) # first month of RHelp e-mails
 rhelp = readLines(gzfile(list.files()[length(list.files())])) # last month of RHelp e-mails
+RHelp = sapply(1:length(list.files()), function(x) readLines(gzfile(list.files()[x])))
 
 findEmailStart = function(txt){ # all e-mails seem to start with the same two lines
 	a = grep("^From .* at ", txt)  # 1st line starts with "From"
@@ -151,24 +158,45 @@ splitEmails = function(txt){ # splits an e-mail text file into individual e-mail
 rhTest = splitEmails(rhelp)[1]
 
 # extracts the sender's e-mail address and name from an e-mail
-findSender = function(message){ # maybe this can take in a row number as input (corresponding to the From: row)
-	lineNumbers = headerLines(headerBody(message)$header)
-	fromLine = message[lineNumbers$from] # the 2 might need to be changed for the other data set.
-	person = gsub("^From: (.*) at (.*) \\((.*)\\).*", "\\1;\\2;\\3", fromLine)
-	personSplit = strsplit(person, ";")[[1]]
-	dateLine = message[lineNumbers$date] # suppose for now that date is always 3rd.
-	date = strptime(dateLine, "Date: %a, %d %b %Y %T") # include %z at end for time zone
-	subjectLine = message[lineNumbers$subject]
-	subject = gsub("^Subject: (.*)", "\\1", subjectLine)
-	c(paste(personSplit[1], personSplit[2], sep = "@"), personSplit[3], subject, date) 
-
-}
+#findSender = function(message){ # maybe this can take in a row number as input (corresponding to the From: row)
+#	lineNumbers = headerLines(headerBody(message)$header)
+#	fromLine = message[lineNumbers$from] # the 2 might need to be changed for the other data set.
+#	person = gsub("^From: (.*) at (.*) \\((.*)\\).*", "\\1;\\2;\\3", fromLine)
+#	personSplit = strsplit(person, ";")[[1]]
+#	dateLine = message[lineNumbers$date] # suppose for now that date is always 3rd.
+#	date = strptime(dateLine, "Date: %a, %d %b %Y %T") # include %z at end for time zone
+#	subjectLine = message[lineNumbers$subject]
+#	subject = gsub("^Subject: (.*)", "\\1", subjectLine)
+#	c(paste(personSplit[1], personSplit[2], sep = "@"), personSplit[3], subject, date) 
+#
+#}
 
 
 rhelpHeaders = sapply(splitEmails(rhelp), function(x) headerBody(x[-1])$header)
-parsedHeaders = lapply(rhelpHeaders, condenseTo)
+rhelpBodies = sapply(splitEmails(rhelp), function(x) headerBody(x)$body)
+parsedHeaders = lapply(rhelpHeaders, parseHeader)
 table(sapply(parsedHeaders, function(x) dim(x)[2]))
 headerFrame = do.call(rbind.fill, parsedHeaders)
+
+
+############ Big data files #########
+RHelpHeaders = sapply(1:(length(RHelp)-1), function(y){
+	sapply(splitEmails(RHelp[[y]]), function(x) headerBody(x[-1])$header);
+})
+RHelpBodies = sapply(1:(length(RHelp)-1), function(y){
+	sapply(splitEmails(RHelp[[y]]), function(x) headerBody(x)$body);
+})
+parsedRHelpHeaders = sapply(1:length(RHelpHeaders), function(y){
+	lapply(RHelpHeaders[[y]], parseHeader)
+})
+
+headerList = lapply(1:length(parsedRHelpHeaders), function(y){
+	do.call(rbind.fill, parsedRHelpHeaders[[y]])
+})
+
+fullRHelp = do.call(rbind.fill, headerList)
+#####################################
+
 
 # the senders of the e-mails in the last month are:
 senders = sapply(splitEmails(rhelp), function(x) findSender(x))
