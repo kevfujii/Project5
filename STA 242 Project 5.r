@@ -1,3 +1,5 @@
+library(plyr)
+
 ### General functions ###
 
 # This function, given an e-mail message, splits the message into two parts: the header and the body.
@@ -25,10 +27,30 @@ headerLines = function(header){
 	}
 	list(from = from, date = date, subject = subject, messageID = messageID, inReplyTo = inReplyTo, to = to, extraToLines = extraToLines)
 }
+
+# Finds the date in a header
+getDate = function(header){
+	dateLine = headerLines(header)$date
+	date = strptime(header[dateLine], "Date: %a, %d %b %Y %T")
+	date
+}
 	
+# Returns a one-observation data.frame of header attributes
+parseHeader = function(header, rows = NULL){
+	if(length(headerLines(header)$extraToLines) != 0){
+		#header = headerBody(TestEmail2)$header
+		to1 = GetRegExp(header,"(?s).*?To:(.*?)\\n[[:alpha:]-]+:.*",perl = TRUE,replacement = "\\1")
+		to2 = strsplit( gsub("[[:space:]]", "", to1, perl=T), ",")[[1]]
+		header[headerLines(header)$to] = paste("To: ", paste(to2, collapse = ", "), collapse = "")
+		header = header[-headerLines(header)$extraToLines]
+	}
+	cat(header, file = "tempfile.txt", sep = "\n")
+	data.frame(read.dcf("tempfile.txt", fields = rows), stringsAsFactors = FALSE)
+}
 
 
 
+TestEmail2 = readLines("enron/maildir/lay-k/family/1")
 
 #########################Enron##################################################
 #Reads in the email and creates a list of lists, the first holds the persons
@@ -57,7 +79,7 @@ TestEmail = paste(readLines("Enron/maildir/lay-k/family/6"),collapse= "\n")
 #Take everything AFTER To:, up until the first (stuff): you see.
 ToHeader = gsub("(?s).*?To:(.*?)\\n[[:alpha:]-]+:.*", "\\1", TestEmail, perl=TRUE)
 #Get rid of all the damn spaces
-gsub("[[:space:]]", "", ToHeader, perl=T)
+
 #Split by commas, and we have all the recipient emails.
 strsplit( gsub("[[:space:]]", "", ToHeader, perl=T), ",")
 
@@ -122,11 +144,14 @@ findSender = function(message){ # maybe this can take in a row number as input (
 }
 
 
-
-
+rhelpHeaders = sapply(splitEmails(rhelp), function(x) headerBody(x[-1])$header)
+parsedHeaders = lapply(rhelpHeaders, condenseTo)
+table(sapply(parsedHeaders, function(x) dim(x)[2]))
+headerFrame = do.call(rbind.fill, parsedHeaders)
 
 # the senders of the e-mails in the last month are:
 senders = sapply(splitEmails(rhelp), function(x) findSender(x))
+
 
 # Still need to extract time and date, subject, reply (or not), Message-ID of previous mail (if it's a reply), body of message
 
