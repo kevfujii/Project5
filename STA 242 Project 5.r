@@ -116,19 +116,6 @@ Email= lapply(1:length(PeopleNames), function(i){
       readLines(ByPerson[j])
     })
   })
-
-#A small test email which I know has multiple recipients on multiple lines. 
-#The collapse gives the new line charcter, and paste collapses the character
-#vector into one long string
-TestEmail = paste(readLines("Enron/maildir/lay-k/family/6"),collapse= "\n")
-
-#Take everything AFTER To:, up until the first (stuff): you see.
-ToHeader = gsub("(?s).*?To:(.*?)\\n[[:alpha:]-]+:.*", "\\1", TestEmail, perl=TRUE)
-#Get rid of all the damn spaces
-
-#Split by commas, and we have all the recipient emails.
-strsplit( gsub("[[:space:]]", "", ToHeader, perl=T), ",")
-
 #A function to sort through all emails, make them into strings with paste, and
 #extract all the regular expressions.
 #Note, this will require cleaning after running this function.
@@ -139,23 +126,16 @@ GetRegExp = function(File,RegExp, ...){
   return(WhatWeWant)
   }
 
-#Showing how the above function works.  Now we are getting all of the things in 
-  #between " "
-TestEmail =readLines("Enron/maildir/lay-k/family/6")   
-TestRegExp = "(?s)[^\"]*(?:(\".*?\")[^\"]*)"
-GetRegExp(TestEmail,TestRegExp,perl = TRUE,replacement = "\\1")
-
-#An example for removing all the recipiant emails
-GetRegExp(TestEmail,"(?s).*?To:(.*?)\\n[[:alpha:]-]+:.*",perl = TRUE,replacement = "\\1")
-
 #Takes a header and returns a two column matrix, the first column has the sender
 #email the second column the recipiant email.
 GetToFrom = function(header){
   From = GetRegExp(header,"(?s).*?From: (.*?)\\n[[:alpha:]-]+:.*",replacement = "\\1",perl = T)
   To = GetRegExp(header,"(?s).*?To: (.*?)\\n[[:alpha:]-]+:.*",replacement = "\\1",perl = T)
   To = do.call(c,strsplit( gsub("[[:space:]]", "", To, perl=T), ","))
-  Emails = cbind(rep(From,length(To)),To)
-  colnames(Emails) = c("Sender","Recipiant")
+  To = cbind(rownames(table(To)),as.matrix(table(To)))
+  rownames(To) = NULL
+  Emails = cbind(rep(From,length(To[,1])),To)
+  colnames(Emails) = c("Sender","Recipiant","Number Times Emailed")
   return(Emails)
   }
 #Creating my n by 2 matrix  
@@ -171,12 +151,34 @@ ToFromList = lapply(1:length(Headers),function(i){
      })
   })
   
-ToFromMat = lapply(1:length(ToFromList),function(i){
-  do.call(rbind,ToFromList[[i]])
+ToFromMat = do.call(cbind,unlist(ToFromList,redundancies = FALSE))
+
+
+#A function which searches through each folder to find all the different emails
+  #the same person sent from.
+# PROBLEM:  Folders also contain emails the person RECIEVED. Badness 9000. 
+FindAllEmails=function(List){
+  AllEmails = sapply(1:length(List),function(i){
+  GetRegExp(List[[i]],"(?s).*?From: (.*?)\\n[[:alpha:]-]+:.*",replacement = "\\1",perl = T)
   })
+  return(AllEmails)
+  }
 
-MajorToFromMat = do.call(rbind,ToFromMat)#a 3 million by 2 matrix.
-
+#Function to collapse the 3million matrix into a three column matrix, where the 
+#third column holds the number of times the sender email the unique recipiant.
+TimesEmailed = function(Sender,Recipiant){
+  UniqueNames = unique(Sender)
+  
+  lapply(1:length(UniqueNames),function(i){
+      WhichIndex = which(Sender == UniqueNames[[i]])
+      sapply(1:length(WhichIndex),function(j){
+        SubSetRep = Recipiant[WhichIndex]
+        
+        
+          
+      
+    
+    
 
 
 ################ R Help #######################
