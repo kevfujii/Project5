@@ -222,6 +222,10 @@ rhTest = splitEmails(rhelp)[1]
 #
 #}
 
+findSender = function(senderLine){ # maybe this can take in a row number as input (corresponding to the From: row)
+gsub(".*\\((.*)\\)", "\\1", senderLine)
+}
+
 
 rhelpHeaders = sapply(splitEmails(rhelp), function(x) headerBody(x[-1])$header)
 rhelpBodies = sapply(splitEmails(rhelp), function(x) headerBody(x)$body)
@@ -230,7 +234,7 @@ table(sapply(parsedHeaders, function(x) dim(x)[2]))
 headerFrame = do.call(rbind.fill, parsedHeaders)
 
 
-############ Big data files #########
+############ Here is the actual code for RHelp #########
 RHelpHeaders = sapply(1:(length(RHelp)), function(y){
 	sapply(splitEmails(RHelp[[y]]), function(x) headerBody(x[-1])$header);
 })
@@ -245,7 +249,54 @@ headerList = lapply(1:length(parsedRHelpHeaders), function(y){
 	do.call(rbind.fill, parsedRHelpHeaders[[y]])
 })
 
+fullRHelpBodies = do.call(c, RHelpBodies)
+unlistedRHelpBodies = unlist(RHelpBodies)
+functions = gsub("([[:alpha:]|.]+\\()", "FUNCTION HERE! \\1", unlistedRHelpBodies)
+functions = strsplit(functions, "FUNCTION")
+
+allfunctions = character(0)
+#for(i in 101:length(functions)%/%10000){
+j = 0
+while(j < 13){
+	for(i in 1:100){
+		functionstest = sapply(functions[(10000*i-9999):(10000*i)], function(x){
+			gsub("^ HERE! ([[:alpha:]|.]+)\\(.*", "\\1", x[which(grepl("^ HERE! ", x))])
+			})
+		allfunctions = c(allfunctions, unlist(functionstest))
+		print(i+100*j)
+	}
+	functions = functions[-(1:1000000)]
+	j = j + 1
+}
+functionstest = sapply(functions, function(x){
+	gsub("^ HERE! ([[:alpha:]|.]+)\\(.*", "\\1", x[which(grepl("^ HERE! ", x))])
+	})
+allfunctions = c(allfunctions, unlist(functionstest))
+
+
+
+functionTable = sort(table(allfunctions), decreasing = TRUE)
+
+
+
+
+
+#i = 0
+#while(length(functions) > 0){
+#	functionstest = gsub("^ HERE! ([[:alpha:]|.]+)\\(.*", "\\1", functions[[1]][which(grepl("^ HERE! ", functions[[1]]))])
+#	allfunctions = c(allfunctions, functionstest)
+#	functions = functions[-1]
+#	if(i %% 10 == 0) print(i)
+#	i = i + 1
+#}
+
+
 fullRHelp = do.call(rbind.fill, headerList)
+
+senders = sapply(fullRHelp$From, function(x) gsub(".*\\((.*)\\)", "\\1", x))
+sendersTable = sort(table(senders), decreasing = TRUE)
+sendersTable["Duncan Temple Lang"]
+duncansEmails = fullRHelpBodies[which(senders == "Duncan Temple Lang")]
 dates = formatDate(fullRHelp$Date)
 #####################################
 
