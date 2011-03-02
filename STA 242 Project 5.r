@@ -220,6 +220,10 @@ rhTest = splitEmails(rhelp)[1]
 #
 #}
 
+findSender = function(senderLine){ # maybe this can take in a row number as input (corresponding to the From: row)
+gsub(".*\\((.*)\\)", "\\1", senderLine)
+}
+
 
 rhelpHeaders = sapply(splitEmails(rhelp), function(x) headerBody(x[-1])$header)
 rhelpBodies = sapply(splitEmails(rhelp), function(x) headerBody(x)$body)
@@ -228,7 +232,7 @@ table(sapply(parsedHeaders, function(x) dim(x)[2]))
 headerFrame = do.call(rbind.fill, parsedHeaders)
 
 
-############ Big data files #########
+############ Here is the actual code for RHelp #########
 RHelpHeaders = sapply(1:(length(RHelp)), function(y){
 	sapply(splitEmails(RHelp[[y]]), function(x) headerBody(x[-1])$header);
 })
@@ -243,7 +247,16 @@ headerList = lapply(1:length(parsedRHelpHeaders), function(y){
 	do.call(rbind.fill, parsedRHelpHeaders[[y]])
 })
 
+fullRHelpBodies = do.call(c, RHelpBodies)
+unlistedRHelpBodies = unlist(RHelpBodies)
+#gsub(" ([[:alpha:]|.]*)\\(", "FUNCTION HERE! \\1", unlistedRHelpBodies)
+
 fullRHelp = do.call(rbind.fill, headerList)
+
+senders = sapply(fullRHelp$From, function(x) gsub(".*\\((.*)\\)", "\\1", x))
+sendersTable = sort(table(senders), decreasing = TRUE)
+sendersTable["Duncan Temple Lang"]
+duncansEmails = fullRHelpBodies[which(senders == "Duncan Temple Lang")]
 dates = formatDate(fullRHelp$Date)
 #####################################
 
