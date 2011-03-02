@@ -249,7 +249,45 @@ headerList = lapply(1:length(parsedRHelpHeaders), function(y){
 
 fullRHelpBodies = do.call(c, RHelpBodies)
 unlistedRHelpBodies = unlist(RHelpBodies)
-#gsub(" ([[:alpha:]|.]*)\\(", "FUNCTION HERE! \\1", unlistedRHelpBodies)
+functions = gsub("([[:alpha:]|.]+\\()", "FUNCTION HERE! \\1", unlistedRHelpBodies)
+functions = strsplit(functions, "FUNCTION")
+
+allfunctions = character(0)
+#for(i in 101:length(functions)%/%10000){
+j = 0
+while(j < 13){
+	for(i in 1:100){
+		functionstest = sapply(functions[(10000*i-9999):(10000*i)], function(x){
+			gsub("^ HERE! ([[:alpha:]|.]+)\\(.*", "\\1", x[which(grepl("^ HERE! ", x))])
+			})
+		allfunctions = c(allfunctions, unlist(functionstest))
+		print(i+100*j)
+	}
+	functions = functions[-(1:1000000)]
+	j = j + 1
+}
+functionstest = sapply(functions, function(x){
+	gsub("^ HERE! ([[:alpha:]|.]+)\\(.*", "\\1", x[which(grepl("^ HERE! ", x))])
+	})
+allfunctions = c(allfunctions, unlist(functionstest))
+
+
+
+functionTable = sort(table(allfunctions), decreasing = TRUE)
+
+
+
+
+
+#i = 0
+#while(length(functions) > 0){
+#	functionstest = gsub("^ HERE! ([[:alpha:]|.]+)\\(.*", "\\1", functions[[1]][which(grepl("^ HERE! ", functions[[1]]))])
+#	allfunctions = c(allfunctions, functionstest)
+#	functions = functions[-1]
+#	if(i %% 10 == 0) print(i)
+#	i = i + 1
+#}
+
 
 fullRHelp = do.call(rbind.fill, headerList)
 
