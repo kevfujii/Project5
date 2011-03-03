@@ -197,23 +197,6 @@ FindAllEmails=function(List){
   })
   return(AllEmails)
   }
-
-#Function to collapse the 3million matrix into a three column matrix, where the 
-#third column holds the number of times the sender email the unique recipiant.
-TimesEmailed = function(Sender,Recipiant){
-  UniqueNames = unique(Sender)
-  NewMat = sapply(1:length(UniqueNames),function(i){
-      WhichIndex = which(Sender == UniqueNames[[i]])
-      Times = as.matrix(table(Recipiant[WhichIndex]))
-      MAT = cbind(rep(UniqueNames[[i]],length(Times[,1])),rownames(Times),Times)
-      rownames(MAT) = NULL
-      return(MAT)
-      })
-  return(NewMat)
-  }
-  
-ToFromTime = TimesEmailed(MajorToFromMat[,1],MajorToFromMat[,2])
-ToFromFinal = do.call(rbind,ToFromTime)
   
 ################ R Help #######################
 #setwd("~/enron/maildir/")
