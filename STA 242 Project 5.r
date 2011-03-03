@@ -334,7 +334,7 @@ datestimes = formatDate(fullRHelp$Date)
 dates = as.Date(datestimes)
 hist(dates[dates > as.Date("1970-01-01")], breaks = "days")
 
-plot(unlist(lapply(RHelpHeaders, length))[dateOrder], axes = FALSE, pch = 20)
+plot(unlist(lapply(RHelpHeaders, length))[dateOrder], axes = FALSE, pch = 20, xlab = "Year (by month)", ylab = "E-mails sent", main = "E-mails sent through R-help by month")
 axis(1, c(1,seq(10, 167, 12)), 1997:2011)
 axis(2)
 
@@ -347,6 +347,28 @@ dateOrder = order(allDates)
 fullRHelp = do.call(rbind.fill, headerList)
 dates = formatDate(fullRHelp$Date)
 >>>>>>> f9daa4a48074fdd11552e5c4e3efd2cdac76d824
+
+
+
+
+
+firstLines = unlist(sapply(1:(length(RHelp)), function(y){
+	sapply(splitEmails(RHelp[[y]]), function(x) x[1])
+}))
+extractDates = gsub("^From [^ ]+ at [^ ]+ +(.*)", "\\1", firstLines)
+firstDates = strptime(extractDates, format = "%a %b %d %X %Y")
+firstDatesByDay = as.Date(firstDates)
+dateTable = sort(table(firstDatesByDay), decreasing = TRUE) 
+hist(firstDatesByDay, breaks = "days", freq = TRUE, xlab = "Year (by day)", ylab = "E-mails sent", main = "E-mails sent through R-help by day")
+
+
+march2006 = readLines(gzfile("2006-March.txt.gz"))
+march2006 = splitEmails(march2006)
+march2006 = lapply(march2006, headerBody)
+
+table(sapply(1:length(march2006), function(x) length(march2006[[x]]$header)))
+march2006[7065]
+
 #####################################
 
 
@@ -356,7 +378,7 @@ senders = sapply(splitEmails(rhelp), function(x) findSender(x))
 
 # Still need to extract time and date, subject, reply (or not), Message-ID of previous mail (if it's a reply), body of message
 
-
+# include a plot of unique senders by month
 
 
 %SystemRoot%\system32\cmd.exe
