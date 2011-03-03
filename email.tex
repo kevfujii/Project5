@@ -78,7 +78,33 @@ The functions appearing in Table \ref{table:allFcns} are all quite common, as ex
 
 Now, let's look at the functions used in the bodies of the e-mail messages.  The most commonly used functions in e-mail bodies are displayed in the third and fourth columns of Table \ref{table:allFcns}.  It should come as no surprise that the functions used in e-mail bodies are even more generic than those in subject lines.  Users of the R-help mailing list are likely to include their code in the bodies of their e-mails, so it makes sense that these generic functions appear most often since they have wide applications.  Many of these functions deal with data creation, possibly to set up test data for more complex function calls.
 
- 
+We can also explore what packages the users of the R-help mailing list are utilizing.  The most commonly loaded packages are shown in Table \ref{table:allLibs}.
+
+ \begin{table}[ht]
+ \centering
+ \begin{tabular}{|c|c||c|c|}
+ \hline
+\multicolumn{2}{|c||}{Subject Line} & \multicolumn{2}{|c|}{E-Mail Body}\\
+\hline
+\footnotesize{\textbf{Library}}& \footnotesize{\textbf{Frequency}} & \footnotesize{\textbf{Library}}& \footnotesize{\textbf{Frequency}}\\
+\hline
+survival & 13 & lattice & 2392 \\
+car &10 & zoo & 1384\\
+MASS & 10 & MASS & 1345\\
+gplots & 9 & nlme & 1005\\
+Matrix & 9 & ggplot2 & 824\\
+... & 8 & Hmisc & 604\\
+tcltk & 8 & chron & 555\\
+fCalendar & 6 & lme4 & 497\\
+SSPA & 6 & tcltk & 477\\
+``package'' & 5 & RODBC & 471\\
+svIDE & 5 & gsubfn & 393\\
+convert & 4 & survival & 375\\
+\hline
+\end{tabular}
+\caption{The twelve most commonly referenced libraries in subject lines and e-mail bodies from the R-help mailing list.}
+\label{table:allLibs}
+\end{table} 
 
 
 \end{document}

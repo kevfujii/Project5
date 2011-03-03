@@ -271,7 +271,7 @@ unlistedRHelpBodies = unlist(RHelpBodies)
 #con = pipe("../../Users/Kevin/rhelpbodies.txt")
 #tmp = readLines(con, 100000)
 
-
+######## STUFF TO FIND FUNCTIONS ###########
 functions = gsub("([[:alpha:]|.]+\\()", "FUNCTION HERE! \\1", unlistedRHelpBodies)
 functions = strsplit(functions, "FUNCTION")
 
@@ -299,8 +299,31 @@ allfunctions = c(allfunctions, unlist(functionstest))
 functionTable = sort(table(allfunctions), decreasing = TRUE)
 
 
+####### STUFF TO FIND LIBRARIES ########
+libraries = gsub("(library\\(.+?\\))", "LBRY HERE! \\1",unlistedRHelpBodies)
 
+libraries = strsplit(libraries, "LBRY")
 
+alllibraries = character(0)
+#for(i in 101:length(functions)%/%10000){
+j = 0
+while(j < 13){
+	for(i in 1:100){
+		librariestest = sapply(libraries[(10000*i-9999):(10000*i)], function(x){
+			gsub("^ HERE! library\\((.*?)\\).*", "\\1", x[which(grepl("^ HERE! ", x))])
+			})
+		alllibraries = c(alllibraries, unlist(librariestest))
+		print(i+100*j)
+	}
+	libraries= libraries[-(1:1000000)]
+	j = j + 1
+}
+librariestest = sapply(libraries, function(x){
+	gsub("^ HERE! library\\((.*?)\\).*", "\\1", x[which(grepl("^ HERE! ", x))])
+	})
+alllibraries = c(alllibraries, unlist(librariestest))
+
+libraryTable = sort(table(alllibraries), decreasing = TRUE)
 
 #i = 0
 #while(length(functions) > 0){
@@ -322,6 +345,13 @@ subjectfcns = sapply(subjectfcns, function(x){
 	})
 subjectfcns = unlist(subjectfcns)
 subjectfcnTable = sort(table(subjectfcns), decreasing = TRUE)
+subjectlibs = gsub("(library\\(.+?\\))", "LBRY HERE! \\1", subjects)
+subjectlibs = strsplit(subjectlibs, "LBRY")
+subjectlibs = sapply(subjectlibs, function(x){
+	gsub("^ HERE! library\\((.*?)\\).*", "\\1", x[which(grepl("^ HERE! ", x))])
+	})
+subjectlibs = unlist(subjectlibs)
+subjectlibTable = sort(table(subjectlibs), decreasing = TRUE)
 
 
 

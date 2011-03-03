@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.1415926-1.40.11 (MiKTeX 2.9) (preloaded format=pdflatex 2011.3.2)  3 MAR 2011 02:29
+This is pdfTeX, Version 3.1415926-1.40.11 (MiKTeX 2.9) (preloaded format=pdflatex 2011.3.2)  3 MAR 2011 03:47
 entering extended mode
 **C:/Users/Kevin/Project5/email.tex
 (C:/Users/Kevin/Project5/email.tex
@@ -401,21 +401,21 @@ File: rhelpByMonth.png Graphic file (type png)
 <rhelpByDay.png, id=23, 469.755pt x 696.35156pt>
 File: rhelpByDay.png Graphic file (type png)
  <use rhelpByDay.png>
-Package atveryend Info: Empty hook `BeforeClearDocument' on input line 84.
+Package atveryend Info: Empty hook `BeforeClearDocument' on input line 110.
  [1{C:/ProgramData/MiKTeX/2.9/pdftex/config/pdftex.map}] [2 <C:/Users/Kevin/Pro
 ject5/rhelpByMonth.png (PNG copy)>] [3 <C:/Users/Kevin/Project5/rhelpByDay.png 
 (PNG copy)>]
-Package atveryend Info: Empty hook `AfterLastShipout' on input line 84.
+Package atveryend Info: Empty hook `AfterLastShipout' on input line 110.
  (C:\Users\Kevin\Project5\email.aux)
-Package atveryend Info: Executing hook `AtVeryEndDocument' on input line 84.
+Package atveryend Info: Executing hook `AtVeryEndDocument' on input line 110.
 Package rerunfilecheck Info: File `email.out' has not changed.
 (rerunfilecheck)             Checksum: 54AA1927C7671E75CDBBB8E54C472EEF;260.
  ) 
 Here is how much of TeX's memory you used:
- 6523 strings out of 494019
- 92839 string characters out of 3143883
- 187018 words of memory out of 3000000
- 9542 multiletter control sequences out of 15000+200000
+ 6525 strings out of 494019
+ 92861 string characters out of 3143883
+ 192148 words of memory out of 3000000
+ 9543 multiletter control sequences out of 15000+200000
  11892 words of font info for 46 fonts, out of 3000000 for 9000
  875 hyphenation exceptions out of 8191
  34i,9n,32p,691b,325s stack positions out of 5000i,500n,10000p,200000b,50000s
@@ -427,9 +427,9 @@ ogram Files (x86)/MiKTeX 2.9/fonts/type1/public/amsfonts/cm/cmr12.pfb><C:/Progr
 am Files (x86)/MiKTeX 2.9/fonts/type1/public/amsfonts/cm/cmr9.pfb><C:/Program F
 iles (x86)/MiKTeX 2.9/fonts/type1/public/amsfonts/cm/cmti10.pfb><C:/Program Fil
 es (x86)/MiKTeX 2.9/fonts/type1/public/amsfonts/cm/cmti12.pfb>
-Output written on email.pdf (3 pages, 155214 bytes).
+Output written on email.pdf (3 pages, 158538 bytes).
 PDF statistics:
- 82 PDF objects out of 1000 (max. 8388607)
- 11 named destinations out of 1000 (max. 500000)
+ 84 PDF objects out of 1000 (max. 8388607)
+ 12 named destinations out of 1000 (max. 500000)
  43 words of extra memory for PDF output out of 10000 (max. 10000000)
 
