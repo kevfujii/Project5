@@ -126,18 +126,33 @@ GetRegExp = function(File,RegExp, ...){
   return(WhatWeWant)
   }
 
-#Takes a header and returns a two column matrix, the first column has the sender
-#email the second column the recipiant email.
+CommaSpaceKiller = function(Vector){
+  Result = do.call(c,strsplit( gsub("[[:space:]]", "", Vector, perl=T), ","))
+  return(Result)
+  }  
+  
+BindFrom = function(TheFrom,TheOther,name1,name2){
+  TheOther = CommaSpaceKiller(TheOther)
+  Result = cbind(rep(TheFrom,length(TheOther)),TheOther)
+  colnames(Result) = c(name1,name2)
+  return(Result)
+  }
+#Takes a header and returns a three element list, each element is a two column 
+#matrix, the first column has the sender email the second column the recipiant email.
 GetToFrom = function(header){
   From = GetRegExp(header,"(?s).*?From: (.*?)\\n[[:alpha:]-]+:.*",replacement = "\\1",perl = T)
   To = GetRegExp(header,"(?s).*?To: (.*?)\\n[[:alpha:]-]+:.*",replacement = "\\1",perl = T)
-  To = do.call(c,strsplit( gsub("[[:space:]]", "", To, perl=T), ","))
-  To = cbind(rownames(table(To)),as.matrix(table(To)))
-  rownames(To) = NULL
-  Emails = cbind(rep(From,length(To[,1])),To)
-  colnames(Emails) = c("Sender","Recipiant","Number Times Emailed")
+  To = BindFrom(From,To,"Sender","To")
+  if( length(grep("Bcc",header)) != 0){
+    Cc = GetRegExp(header,"(?s).*?Cc: (.*?)\\n[[:alpha:]-]+:.*",replacement = "\\1",perl = T)
+    Cc = BindFrom(From,Cc,"Sender","Cc")
+    }else{
+      Cc = NULL
+      }
+  Emails = list(To,Cc)  
   return(Emails)
   }
+  
 #Creating my n by 2 matrix  
 Headers = lapply(1:length(Email),function(i){
   lapply(1:length(Email[[i]]),function(j) {
@@ -150,9 +165,28 @@ ToFromList = lapply(1:length(Headers),function(i){
      GetToFrom(Headers[[i]][[j]])
      })
   })
-  
-ToFromMat = do.call(cbind,unlist(ToFromList,redundancies = FALSE))
+#A function which takes in a list of lists, and creates a two column matrix 
+  #based.  Whichone is for the ToFrom list, or the FromCc list.
+Matrify = function(List,WhichOne){
+  List = unlist(List,recursive = FALSE)
+  List = sapply(1:length(List), function(i){
+    List[[i]][[WhichOne]]
+    })
+  List = do.call(rbind,List)
+  Pasted = sapply(1:nrow(List),function(i){
+    paste(List[i,],collapse = "::")
+    })
+  Table = table(Pasted)
+  Table = cbind(do.call(rbind,strsplit(rownames(Table),"::")) ,Table)
+  rownames(Table) = NULL   
+  return(Table)
+  } 
+#As it turns out, Bcc = Cc exactly 
+FromToMat = Matrify(ToFromList,1)
+FromCcMat = Matrify(ToFromList,2)
 
+FromToMat = FromToMat[order(as.numeric(FromToMat[,3]),decreasing = FALSE),]
+FromCcMat = FromCcMat[order(as.numeric(FromCcMat[,3]),decreasing = FALSE),]
 
 #A function which searches through each folder to find all the different emails
   #the same person sent from.
@@ -168,19 +202,19 @@ FindAllEmails=function(List){
 #third column holds the number of times the sender email the unique recipiant.
 TimesEmailed = function(Sender,Recipiant){
   UniqueNames = unique(Sender)
-  
-  lapply(1:length(UniqueNames),function(i){
+  NewMat = sapply(1:length(UniqueNames),function(i){
       WhichIndex = which(Sender == UniqueNames[[i]])
-      sapply(1:length(WhichIndex),function(j){
-        SubSetRep = Recipiant[WhichIndex]
-        
-        
-          
-      
-    
-    
-
-
+      Times = as.matrix(table(Recipiant[WhichIndex]))
+      MAT = cbind(rep(UniqueNames[[i]],length(Times[,1])),rownames(Times),Times)
+      rownames(MAT) = NULL
+      return(MAT)
+      })
+  return(NewMat)
+  }
+  
+ToFromTime = TimesEmailed(MajorToFromMat[,1],MajorToFromMat[,2])
+ToFromFinal = do.call(rbind,ToFromTime)
+  
 ################ R Help #######################
 #setwd("~/enron/maildir/")
 setwd("~/RHelp/")
@@ -222,10 +256,6 @@ rhTest = splitEmails(rhelp)[1]
 #
 #}
 
-findSender = function(senderLine){ # maybe this can take in a row number as input (corresponding to the From: row)
-gsub(".*\\((.*)\\)", "\\1", senderLine)
-}
-
 
 rhelpHeaders = sapply(splitEmails(rhelp), function(x) headerBody(x[-1])$header)
 rhelpBodies = sapply(splitEmails(rhelp), function(x) headerBody(x)$body)
@@ -234,7 +264,7 @@ table(sapply(parsedHeaders, function(x) dim(x)[2]))
 headerFrame = do.call(rbind.fill, parsedHeaders)
 
 
-############ Here is the actual code for RHelp #########
+############ Big data files #########
 RHelpHeaders = sapply(1:(length(RHelp)), function(y){
 	sapply(splitEmails(RHelp[[y]]), function(x) headerBody(x[-1])$header);
 })
@@ -249,54 +279,7 @@ headerList = lapply(1:length(parsedRHelpHeaders), function(y){
 	do.call(rbind.fill, parsedRHelpHeaders[[y]])
 })
 
-fullRHelpBodies = do.call(c, RHelpBodies)
-unlistedRHelpBodies = unlist(RHelpBodies)
-functions = gsub("([[:alpha:]|.]+\\()", "FUNCTION HERE! \\1", unlistedRHelpBodies)
-functions = strsplit(functions, "FUNCTION")
-
-allfunctions = character(0)
-#for(i in 101:length(functions)%/%10000){
-j = 0
-while(j < 13){
-	for(i in 1:100){
-		functionstest = sapply(functions[(10000*i-9999):(10000*i)], function(x){
-			gsub("^ HERE! ([[:alpha:]|.]+)\\(.*", "\\1", x[which(grepl("^ HERE! ", x))])
-			})
-		allfunctions = c(allfunctions, unlist(functionstest))
-		print(i+100*j)
-	}
-	functions = functions[-(1:1000000)]
-	j = j + 1
-}
-functionstest = sapply(functions, function(x){
-	gsub("^ HERE! ([[:alpha:]|.]+)\\(.*", "\\1", x[which(grepl("^ HERE! ", x))])
-	})
-allfunctions = c(allfunctions, unlist(functionstest))
-
-
-
-functionTable = sort(table(allfunctions), decreasing = TRUE)
-
-
-
-
-
-#i = 0
-#while(length(functions) > 0){
-#	functionstest = gsub("^ HERE! ([[:alpha:]|.]+)\\(.*", "\\1", functions[[1]][which(grepl("^ HERE! ", functions[[1]]))])
-#	allfunctions = c(allfunctions, functionstest)
-#	functions = functions[-1]
-#	if(i %% 10 == 0) print(i)
-#	i = i + 1
-#}
-
-
 fullRHelp = do.call(rbind.fill, headerList)
-
-senders = sapply(fullRHelp$From, function(x) gsub(".*\\((.*)\\)", "\\1", x))
-sendersTable = sort(table(senders), decreasing = TRUE)
-sendersTable["Duncan Temple Lang"]
-duncansEmails = fullRHelpBodies[which(senders == "Duncan Temple Lang")]
 dates = formatDate(fullRHelp$Date)
 #####################################
 
