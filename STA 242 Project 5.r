@@ -241,7 +241,7 @@ RHelpHeaders = sapply(1:(length(RHelp)), function(y){
 RHelpBodies = sapply(1:(length(RHelp)), function(y){
 	sapply(splitEmails(RHelp[[y]]), function(x) headerBody(x)$body);
 })
-parsedRHelpHeaders = sapply(1:length(RHelpHeaders), function(y){
+parsedRHelpHeaders = lapply(1:length(RHelpHeaders), function(y){
 	lapply(RHelpHeaders[[y]], parseHeader)
 })
 
@@ -251,6 +251,13 @@ headerList = lapply(1:length(parsedRHelpHeaders), function(y){
 
 fullRHelpBodies = do.call(c, RHelpBodies)
 unlistedRHelpBodies = unlist(RHelpBodies)
+
+#cat(unlistedRHelpBodies, file = "rhelpbodies.txt", sep = "\n")
+#con = pipe("egrep -c '[[:alpha:]|.]+\\(' ~/Documents/RHelp/rhelpbodies.txt")
+#con = pipe("../../Users/Kevin/rhelpbodies.txt")
+#tmp = readLines(con, 100000)
+
+
 functions = gsub("([[:alpha:]|.]+\\()", "FUNCTION HERE! \\1", unlistedRHelpBodies)
 functions = strsplit(functions, "FUNCTION")
 
@@ -293,11 +300,35 @@ functionTable = sort(table(allfunctions), decreasing = TRUE)
 
 fullRHelp = do.call(rbind.fill, headerList)
 
+subjects = fullRHelp$Subject
+subjectfcns = gsub("([[:alpha:]|.]+\\()", "FUNCTION HERE! \\1", subjects)
+subjectfcns = strsplit(subjectfcns, "FUNCTION")
+subjectfcns = sapply(subjectfcns, function(x){
+	gsub("^ HERE! ([[:alpha:]|.]+)\\(.*", "\\1", x[which(grepl("^ HERE! ", x))])
+	})
+subjectfcns = unlist(subjectfcns)
+subjectfcnTable = sort(table(subjectfcns), decreasing = TRUE)
+
+
+
+
 senders = sapply(fullRHelp$From, function(x) gsub(".*\\((.*)\\)", "\\1", x))
 sendersTable = sort(table(senders), decreasing = TRUE)
 sendersTable["Duncan Temple Lang"]
 duncansEmails = fullRHelpBodies[which(senders == "Duncan Temple Lang")]
-dates = formatDate(fullRHelp$Date)
+datestimes = formatDate(fullRHelp$Date)
+dates = as.Date(datestimes)
+hist(dates[dates > as.Date("1970-01-01")], breaks = "days")
+
+plot(unlist(lapply(RHelpHeaders, length))[dateOrder], axes = FALSE, pch = 20)
+axis(1, c(1,seq(10, 167, 12)), 1997:2011)
+axis(2)
+
+allFiles = list.files()
+allFiles = gsub("(.*)\\.txt\\.gz", "\\1", allFiles)
+allDates = as.Date(paste(allFiles, "01", sep = "-"), "%Y-%B-%d")
+dateOrder = order(allDates)
+
 #####################################
 
 
@@ -307,3 +338,7 @@ senders = sapply(splitEmails(rhelp), function(x) findSender(x))
 
 # Still need to extract time and date, subject, reply (or not), Message-ID of previous mail (if it's a reply), body of message
 
+
+
+
+%SystemRoot%\system32\cmd.exe
