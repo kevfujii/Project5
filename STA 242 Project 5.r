@@ -107,15 +107,6 @@ TestHeader = headerBody(TestEmail2)$header
    
 
 #########################Enron##################################################
-#Reads in the email and creates a list of lists, the first holds the persons
-  #name and the second holds all the emails they sent.
-PeopleNames =list.files("enron/maildir/",full.names=TRUE)
-Email= lapply(1:length(PeopleNames), function(i){
-  ByPerson =list.files(PeopleNames[i],full.names = TRUE,recursive = TRUE)
-  lapply(1:length(ByPerson), function(j){
-      readLines(ByPerson[j])
-    })
-  })
 #A function to sort through all emails, make them into strings with paste, and
 #extract all the regular expressions.
 #Note, this will require cleaning after running this function.
@@ -146,25 +137,16 @@ GetToFrom = function(header){
   if( length(grep("Bcc",header)) != 0){
     Cc = GetRegExp(header,"(?s).*?Cc: (.*?)\\n[[:alpha:]-]+:.*",replacement = "\\1",perl = T)
     Cc = BindFrom(From,Cc,"Sender","Cc")
+    Bcc = GetRegExp(header,"(?s).*?Bcc: (.*?)\\n[[:alpha:]-]+:.*",replacement = "\\1",perl = T)
+    Bcc = BindFrom(From,Cc,"Sender","Bcc")
     }else{
       Cc = NULL
+      Bcc = NULL
       }
-  Emails = list(To,Cc)  
+  Emails = list(To,Cc,Bcc)  
   return(Emails)
   }
   
-#Creating my n by 2 matrix  
-Headers = lapply(1:length(Email),function(i){
-  lapply(1:length(Email[[i]]),function(j) {
-     headerBody(Email[[i]][[j]])$header
-     })
-  })
-  
-ToFromList = lapply(1:length(Headers),function(i){
-  lapply(1:length(Headers[[i]]),function(j) {
-     GetToFrom(Headers[[i]][[j]])
-     })
-  })
 #A function which takes in a list of lists, and creates a two column matrix 
   #based.  Whichone is for the ToFrom list, or the FromCc list.
 Matrify = function(List,WhichOne){
@@ -180,23 +162,72 @@ Matrify = function(List,WhichOne){
   Table = cbind(do.call(rbind,strsplit(rownames(Table),"::")) ,Table)
   rownames(Table) = NULL   
   return(Table)
-  } 
-#As it turns out, Bcc = Cc exactly 
-FromToMat = Matrify(ToFromList,1)
-FromCcMat = Matrify(ToFromList,2)
-
-FromToMat = FromToMat[order(as.numeric(FromToMat[,3]),decreasing = FALSE),]
-FromCcMat = FromCcMat[order(as.numeric(FromCcMat[,3]),decreasing = FALSE),]
-
-#A function which searches through each folder to find all the different emails
-  #the same person sent from.
-# PROBLEM:  Folders also contain emails the person RECIEVED. Badness 9000. 
-FindAllEmails=function(List){
-  AllEmails = sapply(1:length(List),function(i){
-  GetRegExp(List[[i]],"(?s).*?From: (.*?)\\n[[:alpha:]-]+:.*",replacement = "\\1",perl = T)
-  })
+  }
+  
+TakeOutEmail= function(List,Email){
+  TakeOut = grep(Email,List[,1])
+  AllEmails = List[TakeOut,] 
   return(AllEmails)
   }
+  
+#Take in the sorted frequency table and returns the top 5 people the specified
+#emailer emailed.  
+PlotNetwork=function(Matrix,n=5,Email){
+  x = TakeOutEmail(Matrix,Email)[1:n,]
+  x[,1] =  gsub("(.*)@.*","\\1",x[,1])
+  x[,2] =  gsub("(.*)@.*","\\1",x[,2])
+  Plot=ftM2graphNEL(x[,1:2], W=as.numeric(x[,3]), edgemode="directed")
+  plot(Plot)
+  }
+  
+   
+#Creating my n by 2 matrix  
+#Reads in the email and creates a list of lists, the first holds the persons
+  #name and the second holds all the emails they sent.
+PeopleNames =list.files("enron/maildir/",full.names=TRUE)
+Email= lapply(1:length(PeopleNames), function(i){
+  ByPerson =list.files(PeopleNames[i],full.names = TRUE,recursive = TRUE)
+  lapply(1:length(ByPerson), function(j){
+      readLines(ByPerson[j])
+    })
+  })
+Headers = lapply(1:length(Email),function(i){
+  lapply(1:length(Email[[i]]),function(j) {
+     headerBody(Email[[i]][[j]])$header
+     })
+  })
+  
+ToFromList = lapply(1:length(Headers),function(i){
+  lapply(1:length(Headers[[i]]),function(j) {
+     GetToFrom(Headers[[i]][[j]])
+     })
+  })
+
+FromToMat = Matrify(ToFromList,1)
+FromCcMat = Matrify(ToFromList,2)
+FromBccMat =Matrify(ToFromList,3)
+
+FromToMat = FromToMat[order(as.numeric(FromToMat[,3]),decreasing = TRUE),]
+FromCcMat = FromCcMat[order(as.numeric(FromCcMat[,3]),decreasing = TRUE),]
+FromBccMat =  FromBccMat[order(as.numeric(FromBccMat[,3]),decreasing = TRUE),]
+
+grep("(.*)@.*",Test[,1])
+ 
+
+SortFromToMat = FromToMat[order(FromToMat[,1],partial =as.numeric(FromToMat[,3]) ,decreasing = TRUE),]
+SortFromCcMat = FromCcMat[order(FromCcMat[,1],partial =as.numeric(FromCcMat[,3]) ,decreasing = TRUE),]
+SortFromBccMat =  FromBccMat[order(FromBccMat[,1],partial =as.numeric(FromBccMat[,3]) ,decreasing = TRUE),]
+
+PlotNetwork(SortFromToMat,5,"kenneth\\.lay@enron\\.com")
+
+
+KLayEmailed = TakeOutEmail(SortFromToMat,"kenneth\\.lay@enron\\.com")
+AssistantKL = TakeOutEmail(SortFromToMat,"kenneth\\.lay@enron\\.com") 
+JSkillingEmailed = TakeOutEmail(SortFromToMat,"jeff\\.skilling@enron\\.com") 
+AssistantJS =  TakeOutEmail(SortFromToMat,"sherri\\.sera@enron\\.com")
+Test = KLayEmailed[1:5,]
+Test2 = TakeOutEmail(SortFromToMat,"kenneth\\.lay@enron\\.com")
+Pla=ftM2graphNEL(Test[,1:2], W=as.numeric(Test[,3]), V=NULL, edgemode="directed")
   
 ################ R Help #######################
 #setwd("~/enron/maildir/")
