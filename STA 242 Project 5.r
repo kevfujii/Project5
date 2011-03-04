@@ -192,12 +192,19 @@ PlotNetwork=function(Matrix,n=5,l=0,StartNetwork,...){
   return(Keep)
   }
 
-PlotNetwork(SortFromToMat,5,1,"kenneth.lay@enron.com","neato")
-
- 
 FindReplaceDot = function(char){
   char = gsub("\\.","\\\\\\.",char)
   return(char)
+  }
+  
+TopNFreq = function(Mat,Top,i){
+  Sum = aggregate(as.numeric(Mat[,3]),by = list(Mat[,i]),sum)
+  Sum =Sum[order(Sum[,2],decreasing = TRUE),][1:n,]
+  return(Sum)
+  }
+  
+XtableFreq = function(Mat,Email,n){
+  xtable(Mat[which(Mat[,1] == Email)[1:n],])
   }
   
 ########################Hard code   
@@ -223,26 +230,6 @@ ToFromList = lapply(1:length(Headers),function(i){
      })
   })
 
-ToFrom = unlist(ToFromList,recursive = FALSE)
-
-  
-CombinedList = sapply(1:length(ToFrom),function(i){
-    do.call(rbind,ToFrom[[i]])
-    })
-CombinedList = do.call(rbind,CombinedList) 
-Pasted = sapply(1:nrow(CombinedList),function(i){
-    paste(CombinedList[i,],collapse = "::")
-    })
-Table = table(Pasted)
-Table = cbind(do.call(rbind,strsplit(rownames(Table),"::")) ,Table)
-rownames(Table) = NULL
-romCcBcc = Table
-rownames(FullFromCcBcc) = NULL
-FullFromCcBcc=FullFromCcBcc[order(as.numeric(FullFromCcBcc[,3]),decreasing=TRUE),]
-
-  
-
-FullFromCcBcc = FullFromCcBcc[order(as.numeric(FullFromCcBcc[,3]),decreasing=TRUE),]
 FromToMat = Matrify(ToFromList,1)
 FromCcMat = Matrify(ToFromList,2)
 FromBccMat =Matrify(ToFromList,3)
@@ -256,21 +243,27 @@ SortFromToMat = FromToMat[order(FromToMat[,1],partial =as.numeric(FromToMat[,3])
 SortFromCcMat = FromCcMat[order(FromCcMat[,1],partial =as.numeric(FromCcMat[,3]) ,decreasing = TRUE),]
 SortFromBccMat =  FromBccMat[order(FromBccMat[,1],partial =as.numeric(FromBccMat[,3]) ,decreasing = TRUE),]
 SortFromCcBcc = FullFromCcBcc[order(FullFromCcBcc[,1],partial =as.numeric(FullFromCcBcc[,3]) ,decreasing = TRUE),]
-Sum = aggregate(as.numeric(FromToMat[,3]),by = list(FromToMat[,1]),sum)
-Sum = Sum[order(Sum[,2],decreasing = TRUE),]
-Sum1 = aggregate(as.numeric(FullFromCcBcc[,3]),by = list(FullFromCcBcc[,1]),sum)
-Sum1 = Sum[order(Sum[,2],decreasing = TRUE),]
+
+
+XtableFreq(DamnPete,"jeff.dasovich@enron.com",5)
+PlotNetwork(SortFromToMat,5,0,"jeff.dasovich@enron.com","neato")
+PlotNetwork(SortFromToMat,3,3,"jeff.dasovich@enron.com")
+
+DamnPete = SortFromCcBcc[-which(SortFromCcBcc[,1] == "pete.davis@enron.com" & SortFromCcBcc[,2] == "pete.davis@enron.com"),]
+XtableFreq(DamnPete,"pete.davis@enron.com",10)
+PlotNetwork(DamnPete,10,0,"pete.davis@enron.com","neato") 
+PlotNetwork(DamnPete,3,3,"pete.davis@enron.com") 
+
+ToFrom = TopNFreq(FromToMat,5,1)
+ToCc = TopNFreq(FromCcMat,5,1)
+ToBcc = TopNFreq(FromBccMat,5,1)
+TopTotal =TopNFreq(FullFromCcBcc,5,1)
 
 PlotNetwork(SortFromToMat,5,1,"kenneth.lay@enron.com")
 
-
-Save = c("kenneth\\.lay@enron\\.com", "l\\.\\.wells@enron\\.com", "k\\.\\.allen@enron\\.com")
 AssistantKL = TakeOutEmail(SortFromToMat,"kenneth\\.lay@enron\\.com") 
 JSkillingEmailed = TakeOutEmail(SortFromToMat,"jeff\\.skilling@enron\\.com") 
 AssistantJS =  TakeOutEmail(SortFromToMat,"sherri\\.sera@enron\\.com")
-Test = KLayEmailed[1:5,]
-Test2 = TakeOutEmail(SortFromToMat,"kenneth\\.lay@enron\\.com")
-Pla=ftM2graphNEL(Test[,1:2], W=as.numeric(Test[,3]), V=NULL, edgemode="directed")
   
 ################ R Help #######################
 #setwd("~/enron/maildir/")
