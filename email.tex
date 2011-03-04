@@ -107,4 +107,61 @@ convert & 4 & survival & 375\\
 \end{table} 
 
 
+
+
+
+\newpage
+\section{Enron Email List}
+The main purpose of this part of the project is to find all the email recipients and senders from the Enron data set, and summarize and graphically represent the results.  The first task was to extract the header of the emails, and from this extract all of the information about who sent the email, and who it was sent to.  This included looking for Bcc (Blind Carbon Copy) and Cc (Carbon Copy) fields.\\
+This was accomplished using regular expressions, and we found that if we do not include Bcc and Cc, we see that the person who emailed anyone the most was Jeff Dasovich.  If we include Bcc and Ccs, the list remains the same.  We may now want to investigate who Jeff was emailing, and we have two ways of doing that.\\ 
+\begin{table}[h]
+\begin{center}
+\begin{tabular}{|r|l|r|}
+  \hline
+Rank & Sender & Number of Emails \\ 
+  \hline
+1 & jeff.dasovich@enron.com & 131302 \\ 
+2 & veronica.espinoza@enron.com & 110601 \\ 
+3 & rhonda.denton@enron.com & 90730 \\ 
+4 & cheryl.johnson@enron.com & 74632 \\ 
+5 & jae.black@enron.com & 59196 \\ 
+ \hline
+\end{tabular}
+\caption{The top 5 people who sent email from the Enron email list.}
+\label{table:allLibs}
+\end{center}
+\end{table}
+
+The first is to build another frequency table, as follows:
+\begin{table}[h]
+\begin{center}
+\begin{tabular}{|r|l|l|l|}
+  \hline
+Rank & Sender & Recipient & Frequency \\ 
+  \hline
+ 1 & jeff.dasovich@enron.com & richard.shapiro@enron.com & 2909 \\ 
+  2 & jeff.dasovich@enron.com & paul.kaufman@enron.com & 2768 \\ 
+  3 & jeff.dasovich@enron.com & susan.mara@enron.com & 2746 \\ 
+  4 & jeff.dasovich@enron.com & james.steffes@enron.com & 2725 \\ 
+  5 & jeff.dasovich@enron.com & karen.denne@enron.com & 2489 \\ 
+   \hline
+\end{tabular}
+\caption{The top five people that Jeff Dasovich emailed.}
+\label{table:allLibs}
+\end{center}
+\end{table}
+In which we can see the number of times Jeff emailed his top 5 recipients.  We may also look at a network graph;
+\begin{figure}[htp]
+\centering
+\includegraphics[width = 100mm]{JeffPlot.jpeg}
+\caption{A small network of who Jeff emails}\label{fig:JeffNetwork}
+\end{figure}\\
+Which gives us the same information, but visually, and without information about the weights.  However, with network graphs it is easy to see who people Jeff emailed were communicating with.  
+\begin{figure}[htp]
+\centering
+\includegraphics[width = 100mm]{JeffPlot2.jpeg}
+\caption{A small network of who Jeff emails, and who they email.}\label{fig:JeffNetwork}
+\end{figure}\\
+
+
 \end{document}

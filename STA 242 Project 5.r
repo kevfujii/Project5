@@ -172,15 +172,35 @@ TakeOutEmail= function(List,Email){
   
 #Take in the sorted frequency table and returns the top 5 people the specified
 #emailer emailed.  
-PlotNetwork=function(Matrix,n=5,Email){
-  x = TakeOutEmail(Matrix,Email)[1:n,]
-  x[,1] =  gsub("(.*)@.*","\\1",x[,1])
-  x[,2] =  gsub("(.*)@.*","\\1",x[,2])
-  Plot=ftM2graphNEL(x[,1:2], W=as.numeric(x[,3]), edgemode="directed")
-  plot(Plot)
+PlotNetwork=function(Matrix,n=5,l=0,StartNetwork,...){
+  if( l > n){stop("You can't have more trees than branches")}
+  if( n <=1 ){stop("You must have more than one branch")}
+  Start = TakeOutEmail(Matrix,FindReplaceDot(StartNetwork))[1:n,]
+  if(l == 0){Emails = FindReplaceDot(StartNetwork)}else{ 
+    Emails = c(FindReplaceDot(StartNetwork),FindReplaceDot(Start[1:l,2]))
+    }
+  Keep =lapply(1:length(Emails),function(i){
+    x = TakeOutEmail(Matrix,Emails[i])[1:n,]
+    x[,1] =  gsub("(.*)@.*","\\1",x[,1])
+    x[,2] =  gsub("(.*)@.*","\\1",x[,2])
+    return(x)
+    })
+  Keep = do.call(rbind,Keep)
+  Plot=ftM2graphNEL(Keep[,1:2], W=as.numeric(Keep[,3]), edgemode="directed")
+  Plot = layoutGraph(Plot)
+  plot(Plot,...)
+  return(Keep)
+  }
+
+PlotNetwork(SortFromToMat,5,1,"kenneth.lay@enron.com","neato")
+
+ 
+FindReplaceDot = function(char){
+  char = gsub("\\.","\\\\\\.",char)
+  return(char)
   }
   
-   
+########################Hard code   
 #Creating my n by 2 matrix  
 #Reads in the email and creates a list of lists, the first holds the persons
   #name and the second holds all the emails they sent.
@@ -193,35 +213,58 @@ Email= lapply(1:length(PeopleNames), function(i){
   })
 Headers = lapply(1:length(Email),function(i){
   lapply(1:length(Email[[i]]),function(j) {
-     headerBody(Email[[i]][[j]])$header
+     formatHeader(headerBody(Email[[i]][[j]])$header)
      })
   })
   
 ToFromList = lapply(1:length(Headers),function(i){
   lapply(1:length(Headers[[i]]),function(j) {
-     GetToFrom(Headers[[i]][[j]])
+     Headers[[i]][[j]]
      })
   })
 
+ToFrom = unlist(ToFromList,recursive = FALSE)
+
+  
+CombinedList = sapply(1:length(ToFrom),function(i){
+    do.call(rbind,ToFrom[[i]])
+    })
+CombinedList = do.call(rbind,CombinedList) 
+Pasted = sapply(1:nrow(CombinedList),function(i){
+    paste(CombinedList[i,],collapse = "::")
+    })
+Table = table(Pasted)
+Table = cbind(do.call(rbind,strsplit(rownames(Table),"::")) ,Table)
+rownames(Table) = NULL
+romCcBcc = Table
+rownames(FullFromCcBcc) = NULL
+FullFromCcBcc=FullFromCcBcc[order(as.numeric(FullFromCcBcc[,3]),decreasing=TRUE),]
+
+  
+
+FullFromCcBcc = FullFromCcBcc[order(as.numeric(FullFromCcBcc[,3]),decreasing=TRUE),]
 FromToMat = Matrify(ToFromList,1)
 FromCcMat = Matrify(ToFromList,2)
 FromBccMat =Matrify(ToFromList,3)
 
+FullFromCcBcc = FullFromCcBcc[order(as.numeric(FullFromCcBcc[,3]),decreasing=TRUE),]
 FromToMat = FromToMat[order(as.numeric(FromToMat[,3]),decreasing = TRUE),]
 FromCcMat = FromCcMat[order(as.numeric(FromCcMat[,3]),decreasing = TRUE),]
 FromBccMat =  FromBccMat[order(as.numeric(FromBccMat[,3]),decreasing = TRUE),]
 
-grep("(.*)@.*",Test[,1])
- 
-
 SortFromToMat = FromToMat[order(FromToMat[,1],partial =as.numeric(FromToMat[,3]) ,decreasing = TRUE),]
 SortFromCcMat = FromCcMat[order(FromCcMat[,1],partial =as.numeric(FromCcMat[,3]) ,decreasing = TRUE),]
 SortFromBccMat =  FromBccMat[order(FromBccMat[,1],partial =as.numeric(FromBccMat[,3]) ,decreasing = TRUE),]
+SortFromCcBcc = FullFromCcBcc[order(FullFromCcBcc[,1],partial =as.numeric(FullFromCcBcc[,3]) ,decreasing = TRUE),]
+Sum = aggregate(as.numeric(FromToMat[,3]),by = list(FromToMat[,1]),sum)
+Sum = Sum[order(Sum[,2],decreasing = TRUE),]
+Sum1 = aggregate(as.numeric(FullFromCcBcc[,3]),by = list(FullFromCcBcc[,1]),sum)
+Sum1 = Sum[order(Sum[,2],decreasing = TRUE),]
 
-PlotNetwork(SortFromToMat,5,"kenneth\\.lay@enron\\.com")
+PlotNetwork(SortFromToMat,5,1,"kenneth.lay@enron.com")
 
 
-KLayEmailed = TakeOutEmail(SortFromToMat,"kenneth\\.lay@enron\\.com")
+Save = c("kenneth\\.lay@enron\\.com", "l\\.\\.wells@enron\\.com", "k\\.\\.allen@enron\\.com")
 AssistantKL = TakeOutEmail(SortFromToMat,"kenneth\\.lay@enron\\.com") 
 JSkillingEmailed = TakeOutEmail(SortFromToMat,"jeff\\.skilling@enron\\.com") 
 AssistantJS =  TakeOutEmail(SortFromToMat,"sherri\\.sera@enron\\.com")
