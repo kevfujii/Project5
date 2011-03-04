@@ -117,11 +117,12 @@ GetRegExp = function(File,RegExp, ...){
   return(WhatWeWant)
   }
 
+#Removes spaces and commas
 CommaSpaceKiller = function(Vector){
   Result = do.call(c,strsplit( gsub("[[:space:]]", "", Vector, perl=T), ","))
   return(Result)
   }  
-  
+#Binds the sender to the recipient  
 BindFrom = function(TheFrom,TheOther,name1,name2){
   TheOther = CommaSpaceKiller(TheOther)
   Result = cbind(rep(TheFrom,length(TheOther)),TheOther)
@@ -163,7 +164,8 @@ Matrify = function(List,WhichOne){
   rownames(Table) = NULL   
   return(Table)
   }
-  
+
+#Finds the subset of the frequency table in which the sender is "email"  
 TakeOutEmail= function(List,Email){
   TakeOut = grep(Email,List[,1])
   AllEmails = List[TakeOut,] 
@@ -191,18 +193,20 @@ PlotNetwork=function(Matrix,n=5,l=0,StartNetwork,...){
   plot(Plot,...)
   return(Keep)
   }
-
+  
+#Takes any thread with a ".", and replaces the "." with a "\\."
 FindReplaceDot = function(char){
   char = gsub("\\.","\\\\\\.",char)
   return(char)
   }
-  
+#Gets the top "Top" frequences of column i, used for calculating how many
+#time someone send AN email total   
 TopNFreq = function(Mat,Top,i){
   Sum = aggregate(as.numeric(Mat[,3]),by = list(Mat[,i]),sum)
-  Sum =Sum[order(Sum[,2],decreasing = TRUE),][1:n,]
+  Sum =Sum[order(Sum[,2],decreasing = TRUE),][1:Top,]
   return(Sum)
   }
-  
+#Outputs an xtable output of the top n recipiates for a specific sender
 XtableFreq = function(Mat,Email,n){
   xtable(Mat[which(Mat[,1] == Email)[1:n],])
   }
