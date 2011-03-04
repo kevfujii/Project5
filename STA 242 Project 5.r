@@ -336,6 +336,12 @@ headerList = lapply(1:length(parsedRHelpHeaders), function(y){
 	do.call(rbind.fill, parsedRHelpHeaders[[y]])
 })
 
+onlyFromLines = lapply(1:length(headerList), function(i) headerList[[i]]$From)
+uniqueUsers = sapply(onlyFromLines, function(i) length(unique(i)))[dateOrder]
+plot(uniqueUsers, xlab = "Year (by month)", ylab = "Unique users", main = "Unique users by month", axes = FALSE)
+axis(1, c(1,seq(10, 167, 12)), 1997:2011)
+axis(2)
+
 <<<<<<< HEAD
 fullRHelpBodies = do.call(c, RHelpBodies)
 unlistedRHelpBodies = unlist(RHelpBodies)
@@ -453,13 +459,25 @@ dates = formatDate(fullRHelp$Date)
 >>>>>>> f9daa4a48074fdd11552e5c4e3efd2cdac76d824
 
 
+checkTimes4 = function(x, d, fl = onlyFromLines){
+	dat = unlist(fl)[which(x == as.Date(d))]
+	#extractDates[which(dates == as.Date("2006-03-06"))]
+	sum(dat[1:(length(dat)/4)] != dat[(length(dat)/4+1):(length(dat)/2)])
+		+ sum(dat[(length(dat)/2+1):(3*length(dat)/4)] != dat[(length(dat)/4+1):(length(dat)/2)])
+		+ sum(dat[(length(dat)/2+1):(3*length(dat)/4)] != dat[(3*length(dat)/4+1):(length(dat))])
 
+}
 
+checkTimes4(dates, "2006-03-06")
+times4 = which(sapply(1:365, function(i) checkTimes4(dates, as.Date(i, origin = as.Date("2006-01-01")))) == 0)
+as.Date(times4, origin = as.Date("2006-01-01"))
 
-firstLines = unlist(sapply(1:(length(RHelp)), function(y){
+firstLines = lapply(1:(length(RHelp)), function(y){
 	sapply(splitEmails(RHelp[[y]]), function(x) x[1])
-}))
-extractDates = gsub("^From [^ ]+ at [^ ]+ +(.*)", "\\1", firstLines)
+})
+
+
+extractDates = gsub("^From [^ ]+ at [^ ]+ +(.*)", "\\1", unlist(firstLines))
 firstDates = strptime(extractDates, format = "%a %b %d %X %Y")
 firstDatesByDay = as.Date(firstDates)
 dateTable = sort(table(firstDatesByDay), decreasing = TRUE) 
@@ -469,6 +487,8 @@ hist(firstDatesByDay, breaks = "days", freq = TRUE, xlab = "Year (by day)", ylab
 march2006 = readLines(gzfile("2006-March.txt.gz"))
 march2006 = splitEmails(march2006)
 march2006 = lapply(march2006, headerBody)
+
+
 
 table(sapply(1:length(march2006), function(x) length(march2006[[x]]$header)))
 march2006[7065]

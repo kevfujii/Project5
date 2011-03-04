@@ -1,5 +1,8 @@
-\BOOKMARK [1][-]{section*.1}{Project Overview}{}
-\BOOKMARK [1][-]{section*.2}{R-Help mailing list}{}
-\BOOKMARK [2][-]{subsection.0.1}{0.1. Format of the data}{section*.2}
-\BOOKMARK [2][-]{subsection.0.2}{0.2. Functions of interest}{section*.2}
-\BOOKMARK [1][-]{section.1}{1. Enron Email List}{}
+\BOOKMARK [1][-]{section.1}{1. Project Overview}{}% 1
+\BOOKMARK [1][-]{section.2}{2. R-Help mailing list}{}% 2
+\BOOKMARK [2][-]{subsection.2.1}{2.1. Format of the data}{section.2}% 3
+\BOOKMARK [2][-]{subsection.2.2}{2.2. Trend over time}{section.2}% 4
+\BOOKMARK [2][-]{subsection.2.3}{2.3. Functions of interest}{section.2}% 5
+\BOOKMARK [2][-]{subsection.2.4}{2.4. E-mail domains}{section.2}% 6
+\BOOKMARK [2][-]{subsection.2.5}{2.5. Message threads}{section.2}% 7
+\BOOKMARK [1][-]{section.3}{3. Enron Email List}{}% 8
